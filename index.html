@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Homenagem - Dia dos Pais (Interativa — Corações)</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;overflow-x:hidden}
+    body{
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: #FFFFFF;
+      color:#87CEFA;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      position:relative;
+    }
+    .card{
+      width:100%;
+      max-width:980px;
+      background:#87CEFA;
+      border-radius:18px;
+      padding:22px;
+      box-shadow:0 10px 40px rgba(2,6,23,0.3);
+      overflow:hidden;
+      position:relative;
+      z-index:5;
+      color:#FFFFFF;
+    }
+    .hero{
+      width:100%;
+      height:460px;
+      border-radius:12px;
+      overflow:hidden;
+      position:relative;
+      margin-bottom:18px;
+      background:#FFFFFF;
+    }
+    .slides{position:relative;width:100%;height:100%;display:block;overflow:hidden;background:#FFFFFF}
+    .slides img{
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%);
+      max-width:100%;
+      max-height:100%;
+      object-fit:contain;
+      display:block;
+      opacity:0;
+      transition:opacity 1s ease-in-out, transform 1s ease-in-out
+    }
+    .slides img.active{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    .overlay{
+      position:absolute;
+      inset:0;
+      display:flex;
+      flex-direction:column;
+      justify-content:flex-end;
+      padding:22px;
+      background:linear-gradient(180deg,transparent 45%, rgba(135,206,250,0.8));
+      pointer-events:none
+    }
+    .title{font-size:28px;font-weight:700;margin-bottom:6px;letter-spacing:0.2px}
+    .subtitle{font-size:15px;color:rgba(255,255,255,0.9);margin-bottom:8px}
+    .content{
+      background:rgba(255,255,255,0.1);
+      border-radius:12px;
+      padding:18px;
+      max-height:360px;
+      overflow:auto;
+      line-height:1.7;
+      font-size:16px
+    }
+    .signature{margin-top:16px;font-weight:600;text-align:right}
+    .hint{
+      position:absolute;
+      left:12px;
+      top:12px;
+      background:rgba(135,206,250,0.85);
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:13px;
+      color:#FFFFFF;
+      backdrop-filter:blur(4px);
+      z-index:6;
+      pointer-events:none
+    }
+    .heart{
+      position:fixed;
+      z-index:999;
+      pointer-events:none;
+      user-select:none;
+      font-size:20px;
+      opacity:0;
+      transform:translateY(0) scale(1);
+      will-change:transform,opacity;
+      text-shadow:0 6px 18px rgba(0,0,0,0.45);
+    }
+    @keyframes rise {
+      0%{opacity:0;transform:translateY(20px) scale(0.8)}
+      10%{opacity:1}
+      100%{opacity:0;transform:translateY(-420px) scale(1.4)}
+    }
+    @media (max-width:700px){
+      .hero{height:300px}
+      .title{font-size:20px}
+      .content{font-size:15px}
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="hero" id="hero">
+      <div class="slides" id="slides">
+        <img src="img/julia e vo.png" alt="julia e vo" class="active" />
+        <img src="img/vo.png" alt="vo" />
+        <img src="img/ysabela e vo.png" alt="ysabela e vo" />
+      </div>
+      <div class="overlay">
+        <div class="title">💙 Feliz Dia dos Pais, Vô 💙</div>
+        <div class="subtitle">Com todo nosso amor e gratidão</div>
+      </div>
+      <div class="hint" id="hint" style="display:none">Se o áudio não tocar, toque em qualquer lugar da página.</div>
+    </div>
+
+    <div class="content" id="texto">
+      💙 <strong>Feliz Dia dos Pais, Vô</strong> 💙<br><br>
+      Hoje celebramos não só os pais, mas também o avô que carrega no coração o amor de duas gerações.<br><br>
+      Vô, você é nosso exemplo de força, de caráter e de um amor que nunca se mede, apenas se sente.<br><br>
+      Como filhas, agradecemos por cada gesto, cada conselho e cada sacrifício feito com amor para nos ver felizes.<br>
+      Como neta, agradeço pelas histórias que aquecem a alma, pelos abraços que curam qualquer tristeza e pelos sorrisos que iluminam nossos dias.<br><br>
+      Você é o alicerce da nossa família, o porto seguro onde sempre encontramos abrigo.<br>
+      Que Deus lhe conceda muita saúde, alegrias sem fim e muitos anos para continuarmos colecionando memórias juntos.<br><br>
+      Nós te amamos para sempre! ❤️<br><br>
+      <span class="signature">Com todo o carinho,<br>Suas filhas e sua neta</span>
+    </div>
+  </div>
+
+  <audio id="bgm" src="clock.mp3" loop preload="auto"></audio>
+
+  <script>
+    (function(){
+      const slides = Array.from(document.querySelectorAll('#slides img'));
+      let idx = 0;
+      function show(i){ slides.forEach((s,k)=>s.classList.toggle('active',k===i)); }
+      show(0);
+      setInterval(()=>{ idx = (idx+1) % slides.length; show(idx); }, 5000);
+    })();
+    (function(){
+      const audio = document.getElementById('bgm');
+      const hint = document.getElementById('hint');
+      let audioContext, analyser, source;
+      function setupAudioProcessing(){
+        try{
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          analyser = audioContext.createAnalyser();
+          analyser.fftSize = 256;
+          source = audioContext.createMediaElementSource(audio);
+          source.connect(analyser);
+          analyser.connect(audioContext.destination);
+        }catch(e){ console.warn('WebAudio não disponível:', e); }
+      }
+      function getVolume(){
+        if(!analyser) return 0;
+        const data = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(data);
+        let sum=0; for(let i=0;i<data.length;i++) sum+=data[i];
+        return sum / data.length / 255;
+      }
+      const p = audio.play();
+      if(p!==undefined){
+        p.then(()=>{ try{ setupAudioProcessing(); }catch(e){} }).catch(()=>{
+          hint.style.display='block';
+          const onStart = ()=>{ audio.play().catch(()=>{}); try{ setupAudioProcessing(); }catch(e){}; hint.style.display='none'; document.removeEventListener('click', onStart); };
+          document.addEventListener('click', onStart, {once:true});
+        });
+      } else {
+        const onStart = ()=>{ audio.play().catch(()=>{}); try{ setupAudioProcessing(); }catch(e){}; document.removeEventListener('click', onStart); };
+        document.addEventListener('click', onStart, {once:true});
+      }
+      document.addEventListener('keydown', e=>{ if(e.key.toLowerCase()==='p'){ if(audio.paused) audio.play().catch(()=>{}); else audio.pause(); } });
+      window._getAudioVolume = getVolume;
+    })();
+    (function(){
+      const minInterval = 200;
+      const maxInterval = 1200;
+      let lastSpawn = 0;
+      function spawnHeart(volume){
+        const heart = document.createElement('div');
+        heart.className = 'heart';
+        heart.textContent = '❤';
+        const base = 14 + Math.round(Math.random()*28 + volume*30);
+        heart.style.fontSize = base + 'px';
+        heart.style.color = '#87CEFA';
+        const rect = document.querySelector('.card').getBoundingClientRect();
+        const left = rect.left + 20 + Math.random()*(rect.width-40);
+        const top = rect.top + rect.height - 40;
+        heart.style.left = left + 'px';
+        heart.style.top = top + 'px';
+        const duration = 3000 + Math.random()*2200 - (volume*1200);
+        heart.style.transition = `transform ${duration}ms linear, opacity ${duration}ms linear`;
+        heart.style.animation = `rise ${duration}ms linear forwards`;
+        document.body.appendChild(heart);
+        setTimeout(()=>{ heart.remove(); }, duration + 100);
+      }
+      function tick(){
+        const now = Date.now();
+        const volume = (window._getAudioVolume && typeof window._getAudioVolume === 'function') ? window._getAudioVolume() : 0.25;
+        const interval = maxInterval - (maxInterval-minInterval) * Math.min(1, volume*1.6);
+        if(now - lastSpawn > interval){ spawnHeart(volume); lastSpawn = now; }
+        if(Math.random() < 0.02) spawnHeart(Math.random());
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    })();
+  </script>
+</body>
+</html>
